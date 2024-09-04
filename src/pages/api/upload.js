@@ -8,8 +8,6 @@ import archiver from 'archiver';
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-console.log(process.env.EMAIL_USER)
-
 // Email configuration
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -27,6 +25,7 @@ export const config = {
 };
 
 export default async function handler(req, res) {
+  console.log(process.env.EMAIL_USER)
   if (req.method === 'POST') {
     try {
       await new Promise((resolve, reject) => {

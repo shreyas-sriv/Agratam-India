@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import nodemailer from 'nodemailer';
 import archiver from 'archiver';
+export const runtime = "experimental-edge"
 
 // Setup multer for handling file uploads
 const storage = multer.memoryStorage();

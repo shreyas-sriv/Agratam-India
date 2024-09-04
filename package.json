@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "pages:build": "npx @cloudflare/next-on-pages"
   },
   "dependencies": {
     "archiver": "^7.0.1",
@@ -19,6 +20,6 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@netlify/plugin-nextjs": "^5.7.0"
+    "@cloudflare/next-on-pages": "^1.13.2"
   }
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+export const runtime = "experimental-edge"
 
 const CameraUpload = () => {
   const [images, setImages] = useState([]);

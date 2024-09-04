@@ -37,8 +37,8 @@ const runMiddleware = (req, res, fn) => {
 };
 
 export default async function handler(req, res) {
-  // if (req.method === 'POST') {
-    try {
+  try {
+    if (req.method === 'POST') {
       await runMiddleware(req, res, upload.array('images'));
 
       const { b_id, secret_code, location, timestamp } = req.body;
@@ -53,35 +53,38 @@ export default async function handler(req, res) {
       const output = fs.createWriteStream(zipFilePath);
       const archive = archiver('zip', { zlib: { level: 9 } });
 
-      output.on('close', () => {
-        const mailOptions = {
-          from: process.env.EMAIL_USER,
-          to: process.env.EMAIL_TO,
-          subject: 'Image Upload with Location and Timestamp',
-          text: `Attached are the images captured with B ID: ${b_id}, location: ${locationObj.latitude}, ${locationObj.longitude}, and timestamp: ${timestamp}`,
-          attachments: [
-            {
-              filename: zipFileName,
-              path: zipFilePath,
-            },
-          ],
-        };
+      output.on('close', async () => {
+        try {
+          const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: process.env.EMAIL_TO,
+            subject: 'Image Upload with Location and Timestamp',
+            text: `Attached are the images captured with B ID: ${b_id}, location: ${locationObj.latitude}, ${locationObj.longitude}, and timestamp: ${timestamp}`,
+            attachments: [
+              {
+                filename: zipFileName,
+                path: zipFilePath,
+              },
+            ],
+          };
 
-        transporter.sendMail(mailOptions, (error, info) => {
-          if (error) {
-            console.error('Error sending email:', error);
-            return res.status(500).json({ message: 'Error sending email' });
-          }
-
-          console.log('Email sent:', info.response);
+          await transporter.sendMail(mailOptions);
+          console.log('Email sent successfully');
           res.status(200).json({ message: 'Images uploaded and email sent successfully!' });
-
-          fs.unlinkSync(zipFilePath); // Clean up the zip file
-        });
+        } catch (error) {
+          console.error('Error sending email:', error);
+          res.status(500).json({ message: 'Error sending email', error: error.message });
+        } finally {
+          // Clean up the zip file
+          fs.unlink(zipFilePath, (err) => {
+            if (err) console.error('Error deleting zip file:', err);
+          });
+        }
       });
 
       archive.on('error', (err) => {
-        throw err;
+        console.error('Error creating archive:', err);
+        res.status(500).json({ message: 'Error creating archive', error: err.message });
       });
 
       req.files.forEach((file) => {
@@ -90,13 +93,12 @@ export default async function handler(req, res) {
 
       archive.pipe(output);
       archive.finalize();
-    } catch (error) {
-      console.error('Error handling upload:', error);
-      res.status(500).json({ message: 'Error handling upload' });
-    // }
-  } 
-  // else {
-  //   res.setHeader('Allow', ['POST']);
-  //   res.status(405).end(`Method ${req.method} Not Allowed`);
-  // }
+    } else {
+      res.setHeader('Allow', ['POST']);
+      res.status(405).end(`Method ${req.method} Not Allowed`);
+    }
+  } catch (error) {
+    console.error('Error handling upload:', error);
+    res.status(500).json({ message: 'Error handling upload', error: error.message });
+  }
 }

@@ -8,6 +8,8 @@ import archiver from 'archiver';
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
+console.log(process.env.EMAIL_USER)
+
 // Email configuration
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -16,6 +18,7 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS,
   },
 });
+
 
 export const config = {
   api: {

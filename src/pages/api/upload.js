@@ -17,29 +17,24 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// Ensure API route does not parse JSON body
 export const config = {
   api: {
     bodyParser: false,
   },
 };
 
-// Helper function to run multer
-const runMiddleware = (req, res, fn) => {
-  return new Promise((resolve, reject) => {
-    fn(req, res, (result) => {
-      if (result instanceof Error) {
-        return reject(result);
-      }
-      return resolve(result);
-    });
-  });
-};
-
 export default async function handler(req, res) {
-  try {
-    if (req.method === 'POST') {
-      await runMiddleware(req, res, upload.array('images'));
+  if (req.method === 'POST') {
+    try {
+      await new Promise((resolve, reject) => {
+        upload.array('images')(req, res, (err) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(undefined);
+          }
+        });
+      });
 
       const { b_id, secret_code, location, timestamp } = req.body;
 
@@ -87,18 +82,18 @@ export default async function handler(req, res) {
         res.status(500).json({ message: 'Error creating archive', error: err.message });
       });
 
-      req.files.forEach((file) => {
+      req.files?.forEach((file) => {
         archive.append(file.buffer, { name: file.originalname });
       });
 
       archive.pipe(output);
       archive.finalize();
-    } else {
-      res.setHeader('Allow', ['POST']);
-      res.status(405).end(`Method ${req.method} Not Allowed`);
+    } catch (error) {
+      console.error('Error handling upload:', error);
+      res.status(500).json({ message: 'Error handling upload', error: error.message });
     }
-  } catch (error) {
-    console.error('Error handling upload:', error);
-    res.status(500).json({ message: 'Error handling upload', error: error.message });
+  } else {
+    res.setHeader('Allow', ['POST']);
+    res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }

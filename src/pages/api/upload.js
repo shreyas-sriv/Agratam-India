@@ -25,7 +25,6 @@ export const config = {
 };
 
 export default async function handler(req, res) {
-  console.log(process.env.EMAIL_USER)
   if (req.method === 'POST') {
     try {
       await new Promise((resolve, reject) => {

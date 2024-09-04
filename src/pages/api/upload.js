@@ -37,7 +37,7 @@ const runMiddleware = (req, res, fn) => {
 };
 
 export default async function handler(req, res) {
-  if (req.method === 'POST') {
+  // if (req.method === 'POST') {
     try {
       await runMiddleware(req, res, upload.array('images'));
 
@@ -93,9 +93,10 @@ export default async function handler(req, res) {
     } catch (error) {
       console.error('Error handling upload:', error);
       res.status(500).json({ message: 'Error handling upload' });
-    }
-  } else {
-    res.setHeader('Allow', ['POST']);
-    res.status(405).end(`Method ${req.method} Not Allowed`);
-  }
+    // }
+  } 
+  // else {
+  //   res.setHeader('Allow', ['POST']);
+  //   res.status(405).end(`Method ${req.method} Not Allowed`);
+  // }
 }
